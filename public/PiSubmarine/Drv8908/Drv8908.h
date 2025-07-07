@@ -93,6 +93,14 @@ namespace PiSubmarine::Drv8908
 		HB8_HS_OLD = (1 << 15)
 	};
 
+	enum class PwmFrequency
+	{
+		Hz80,
+		Hz100,
+		Hz200,
+		Hz2000
+	};
+
 	template<PiSubmarine::Api::Internal::SPI::DriverConcept SpiDriver>
 	class Drv8908
 	{
@@ -118,9 +126,179 @@ namespace PiSubmarine::Drv8908
 			uint8_t ocp1 = 0;
 			uint8_t ocp2 = 0;
 			
-			IcStatus status = ReadRegister(static_cast<uint8_t>(RegOffset::OcpStat1, ocp1));
-			status = ReadRegister(static_cast<uint8_t>(RegOffset::OcpStat2, ocp2));
+			IcStatus status = ReadRegister(static_cast<uint8_t>(RegOffset::OcpStat1), ocp1);
+			status = ReadRegister(static_cast<uint8_t>(RegOffset::OcpStat2), ocp2);
 			ovp = static_cast<OverCurrentStatus>(ocp2 << 8 + ocp1);
+			return status;
+		}
+
+		IcStatus IsHalfBridgeEnabled(uint8_t hbIndex, bool& high, bool& low)
+		{
+			uint8_t reg;
+			if (channel < 4)
+			{
+				reg = RegOffset::OpCtrl1;
+			}
+			else
+			{
+				reg = RegOffset::OpCtrl1;
+			}
+
+			uint8_t regData = 0;
+			IcStatus status = ReadRegister(reg, regData);
+			if (status & IcStatus::TestBit == 0)
+			{
+				return 0;
+			}
+
+			uint8_t bitOffset = (hbIndex % 4) * 2;
+
+			high = regData & (0b10 << bitOffset);
+			low = regData & (0b01 << bitOffset);
+			return status;
+		}
+
+		IcStatus SetHalfBridgeEnabled(uint8_t hbIndex, bool high, bool low)
+		{
+			uint8_t reg;
+			if (channel < 4)
+			{
+				reg = RegOffset::OpCtrl1;
+			}
+			else
+			{
+				reg = RegOffset::OpCtrl1;
+			}
+
+			uint8_t regData = 0;
+			IcStatus status = ReadRegister(reg, regData);
+			if (status & IcStatus::TestBit == 0)
+			{
+				return 0;
+			}
+
+			uint8_t bitOffset = (hbIndex % 4) * 2;
+
+			regData &= ~(0b11 << bitOffset);
+
+			if (high)
+			{
+				regData |= (0b10 << bitOffset);
+			}
+
+			if (low)
+			{
+				regData |= (0b01 << bitOffset);
+			}
+
+			uint8_t regOld = 0;
+			status = WriteRegister(reg, regData, regOld);
+
+			return status;
+		}
+
+		IcStatus SetPwmFrequency(uint8_t channel, PwmFrequency freq)
+		{
+			uint8_t reg;
+			if (channel < 4)
+			{
+				reg = RegOffset::PwmCtrl1;
+			}
+			else
+			{
+				reg = RegOffset::PwmCtrl2;
+			}
+
+			uint8_t bitOffset = (channel % 4) * 2;
+			uint8_t regData = 0;
+			IcStatus status = ReadRegister(reg, regData);
+			if (status & (IcStatus::TestBit) == 0)
+			{
+				return 0;
+			}
+
+			regData &= ~(0b11 << bitOffset);
+			regData |= static_cast<uint8_t>(freq) << bitOffset;
+			uint8_t regOld = 0;
+			status = WriteRegister(reg, regData, regOld);
+
+			return status;
+		}
+
+		IcStatus GetPwmFrequency(uint8_t channel, PwmFrequency& freq)
+		{
+			uint8_t reg;
+			if (channel < 4)
+			{
+				reg = RegOffset::PwmCtrl1;
+			}
+			else
+			{
+				reg = RegOffset::PwmCtrl2;
+			}
+
+			uint8_t bitOffset = (channel % 4) * 2;
+
+			uint8_t regData = 0;
+			IcStatus status = ReadRegister(reg, regData);
+			if (status & (IcStatus::TestBit) == 0)
+			{
+				return 0;
+			}
+
+			freq = static_cast<PwmFrequency>((regData >> bitOffset) & 0b11);
+			return status;
+		}
+
+		IcStatus SetPwmMap(uint8_t halfBridgeIndex, uint8_t pwmChannel)
+		{
+			uint8_t regShift = halfBridgeIndex / 2;
+			uint8_t reg = static_cast<uint8_t>(RegOffset::PwmMapCtrl1) + regShift;
+			uint8_t bitOffset = (halfBridgeIndex % 2) * 3;
+
+			uint8_t regData = 0;
+			IcStatus status = ReadRegister(reg, regData);
+			if (status & (IcStatus::TestBit) == 0)
+			{
+				return 0;
+			}
+
+			regData &= ~(0b111 << bitOffset);
+			regData |= pwmChannel << bitOffset;
+			uint8_t regOld = 0;
+			status = WriteRegister(reg, regData, regOld);
+			return status;
+		}
+
+		IcStatus GetPwmMap(uint8_t halfBridgeIndex, uint8_t& pwmChannel)
+		{
+			uint8_t regShift = halfBridgeIndex / 2;
+			uint8_t reg = static_cast<uint8_t>(RegOffset::PwmMapCtrl1) + regShift;
+			uint8_t bitOffset = (halfBridgeIndex % 2) * 3;
+
+			uint8_t regData = 0;
+			IcStatus status = ReadRegister(reg, regData);
+			if (status & (IcStatus::TestBit) == 0)
+			{
+				return 0;
+			}
+
+			pwmChannel = ((regData >> bitOffset) & 0b111);
+			return status;
+		}
+
+		IcStatus GetDutyCycle(uint8_t channel, uint8_t& value)
+		{
+			uint8_t reg = static_cast<uint8_t>(RegOffset::PwmDutyCtrl1) + channel;
+			auto status = ReadRegister(reg, value);
+			return status;
+		}
+
+		IcStatus SetDutyCycle(uint8_t channel, uint8_t value)
+		{
+			uint8_t reg = static_cast<uint8_t>(RegOffset::PwmDutyCtrl1) + channel;
+			uint8_t regOld = 0;
+			auto status = WriteRegister(reg, value, regOld);
 			return status;
 		}
 
@@ -132,7 +310,10 @@ namespace PiSubmarine::Drv8908
 			uint16_t dataOut = reg << 8;
 			dataOut |= (1 << 14);
 			uint16_t dataIn = 0;
-			m_Driver.WriteRead(&dataOut, &dataIn, 2);
+			if (!m_Driver.WriteRead(&dataOut, &dataIn, 2))
+			{
+				return 0;
+			}
 			IcStatus status = dataIn >> 8;
 			regData = dataIn & 0xFF;
 			return status;
@@ -143,7 +324,10 @@ namespace PiSubmarine::Drv8908
 			uint16_t dataOut = (reg << 8) + dataNew;
 			dataOut &= ~(1 << 14);
 			uint16_t dataIn = 0;
-			m_Driver.WriteRead(&dataOut, &dataIn, 2);
+			if (!m_Driver.WriteRead(&dataOut, &dataIn, 2))
+			{
+				return 0;
+			}
 			IcStatus status = dataIn >> 8;
 			dataOld = dataIn & 0xFF;
 			return status;
