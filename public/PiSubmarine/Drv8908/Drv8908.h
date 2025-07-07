@@ -102,10 +102,10 @@ namespace PiSubmarine::Drv8908
 	};
 
 	template<PiSubmarine::Api::Internal::SPI::DriverConcept SpiDriver>
-	class Drv8908
+	class Device
 	{
 	public:
-		Drv8908(SpiDriver driver) : m_Driver(driver)
+		Device(SpiDriver driver) : m_Driver(driver)
 		{
 
 		}
