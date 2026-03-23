@@ -11,7 +11,7 @@ enable_testing()
 
 # spdlog
 find_package(spdlog)
-find_package(gtest)
+find_package(GTest)
 
 add_executable(PiSubmarine.Drv8908.Test ${PiSubmarine.Drv8908.Test.Sources})
 target_compile_features(PiSubmarine.Drv8908.Test PRIVATE cxx_std_23)
