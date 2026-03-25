@@ -106,7 +106,7 @@ namespace PiSubmarine::Drv8908
     struct ConfigCtrl
     {
         bool PoldEn; // Passive OLD
-        IcId IcId;
+        IcId Id;
         bool OcpRep; // 0 - Overcurrent reported in nFAULT pin, 1 - overcurrent NOT reported in nFAULT
         bool OtwRep; // 0 - Overtemperature NOT reported in nFAULT pin, 1 - Overtemperature reported in nFAULT pin
         bool ExtOvp; // 0 - 21 Volts OVP, 1 - 33 Volts OVP

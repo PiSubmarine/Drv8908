@@ -85,7 +85,7 @@ namespace PiSubmarine::Drv8908
 
         outConfigCtr = {};
         outConfigCtr.PoldEn = (configCtrlByte & ToInt(ConfigCtrlFields::POLD_EN)) != 0;
-        outConfigCtr.IcId = static_cast<IcId>((configCtrlByte & 0b01110000) >> 4);
+        outConfigCtr.Id = static_cast<IcId>((configCtrlByte & 0b01110000) >> 4);
         outConfigCtr.OcpRep = (configCtrlByte & ToInt(ConfigCtrlFields::OCP_REP)) != 0;
         outConfigCtr.OtwRep = (configCtrlByte & ToInt(ConfigCtrlFields::OTW_REP)) != 0;
         outConfigCtr.ExtOvp = (configCtrlByte & ToInt(ConfigCtrlFields::EXT_OVP)) != 0;
