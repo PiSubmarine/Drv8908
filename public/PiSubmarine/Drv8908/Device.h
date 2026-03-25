@@ -7,33 +7,11 @@
 #include "PiSubmarine/SPI/Api/IDriver.h"
 #include "PiSubmarine/Drv8908/Register.h"
 #include "PiSubmarine/GPIO/Api/IDriver.h"
+#include "PiSubmarine/Drv8908/PwmGenerator.h"
+#include "PiSubmarine/Drv8908/HalfBridge.h"
 
 namespace PiSubmarine::Drv8908
 {
-    enum class HalfBridge : uint8_t
-    {
-        HalfBridge1 = 1 << 0,
-        HalfBridge2 = 1 << 1,
-        HalfBridge3 = 1 << 2,
-        HalfBridge4 = 1 << 3,
-        HalfBridge5 = 1 << 4,
-        HalfBridge6 = 1 << 5,
-        HalfBridge7 = 1 << 6,
-        HalfBridge8 = 1 << 7
-    };
-
-    enum class PwmGenerator : uint8_t
-    {
-        PwmGenerator1 = 1 << 0,
-        PwmGenerator2 = 1 << 1,
-        PwmGenerator3 = 1 << 2,
-        PwmGenerator4 = 1 << 3,
-        PwmGenerator5 = 1 << 4,
-        PwmGenerator6 = 1 << 5,
-        PwmGenerator7 = 1 << 6,
-        PwmGenerator8 = 1 << 7
-    };
-
     enum class IcStatus : uint8_t
     {
         NoPowerOnReset = (1 << 0),
