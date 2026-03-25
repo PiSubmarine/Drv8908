@@ -11,8 +11,8 @@
         "CMAKE_C_COMPILER": "cl.exe",
         "CMAKE_CXX_COMPILER": "cl.exe",
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_HOST_TRIPLET": "x64-windows-static-md",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-static-md",
+        "VCPKG_HOST_TRIPLET": "x64-windows-static",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static",
         "VCPKG_OVERLAY_TRIPLETS": "vcpkg/triplets",
         "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreadedDebugDLL"
       },

@@ -5,7 +5,7 @@ include(FetchContent)
 project(PiSubmarine.Drv8908.Test LANGUAGES CXX)
 
 set(PiSubmarine.Drv8908.Test.Sources 
-	"PiSubmarine/Drv8908/Drv8908Test.cpp")
+	"PiSubmarine/Drv8908/DeviceTest.cpp")
 
 enable_testing()
 
@@ -14,9 +14,11 @@ find_package(spdlog)
 find_package(GTest)
 
 add_executable(PiSubmarine.Drv8908.Test ${PiSubmarine.Drv8908.Test.Sources})
+PiSubmarineInitTarget(PiSubmarine.Drv8908.Test)
 target_compile_features(PiSubmarine.Drv8908.Test PRIVATE cxx_std_23)
+target_include_directories(PiSubmarine.Drv8908.Test PRIVATE ./)
 target_link_libraries(PiSubmarine.Drv8908.Test PRIVATE PiSubmarine.Drv8908)
 target_link_libraries(PiSubmarine.Drv8908.Test PRIVATE spdlog::spdlog)
-target_link_libraries(PiSubmarine.Drv8908.Test PRIVATE GTest::gtest_main)
+target_link_libraries(PiSubmarine.Drv8908.Test PRIVATE GTest::gtest_main GTest::gmock_main)
 include(GoogleTest)
 gtest_discover_tests(PiSubmarine.Drv8908.Test)
