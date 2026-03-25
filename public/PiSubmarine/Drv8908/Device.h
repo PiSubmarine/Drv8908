@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 #include <string>
-
+#include <array>
 #include "PiSubmarine/RegUtils.h"
 #include "PiSubmarine/SPI/Api/IDriver.h"
 #include "PiSubmarine/Drv8908/Register.h"
@@ -235,15 +235,19 @@ namespace PiSubmarine::Drv8908
         IcStatus ReadRegister(Register reg, T& regData) const
         {
             using namespace RegUtils;
-            uint16_t dataOut = static_cast<uint8_t>(reg) << 8;
-            dataOut |= (1 << 14);
-            uint16_t dataIn = 0;
-            if (!m_SpiDriver.WriteRead(reinterpret_cast<uint8_t*>(&dataOut), reinterpret_cast<uint8_t*>(&dataIn), 2))
+
+            std::array<uint8_t, 2> mosiBytes{0};
+            mosiBytes[0] = static_cast<uint8_t>(reg);
+            mosiBytes[0] |= (1 << 6);
+
+            std::array<uint8_t, 2> misoBytes{0};
+
+            if (!m_SpiDriver.WriteRead(mosiBytes.data(), misoBytes.data(), 2))
             {
                 return static_cast<IcStatus>(0);
             }
-            const auto status = static_cast<IcStatus>(dataIn >> 8);
-            regData = static_cast<T>(dataIn & 0xFF);
+            const auto status = static_cast<IcStatus>(misoBytes[0]);
+            regData = static_cast<T>(misoBytes[1]);
             return status | IcStatus::TestBit;
         }
 
@@ -258,15 +262,20 @@ namespace PiSubmarine::Drv8908
         IcStatus WriteRegister(Register reg, T dataNew, T& dataOld) const
         {
             using namespace RegUtils;
-            uint16_t dataOut = (static_cast<uint8_t>(reg) << 8) + static_cast<uint8_t>(dataNew);
-            dataOut &= ~(1 << 14);
-            uint16_t dataIn = 0;
-            if (!m_SpiDriver.WriteRead(reinterpret_cast<uint8_t*>(&dataOut), reinterpret_cast<uint8_t*>(&dataIn), 2))
+
+            std::array<uint8_t, 2> mosiBytes{0};
+            mosiBytes[0] = static_cast<uint8_t>(reg);
+            mosiBytes[0] &= ~(1 << 6);
+            mosiBytes[1] = static_cast<uint8_t>(dataNew);
+
+            std::array<uint8_t, 2> misoBytes{0};
+
+            if (!m_SpiDriver.WriteRead(mosiBytes.data(), misoBytes.data(), 2))
             {
                 return static_cast<IcStatus>(0);
             }
-            const auto status = static_cast<IcStatus>(dataIn >> 8);
-            dataOld = static_cast<T>(dataIn & 0xFF);
+            const auto status = static_cast<IcStatus>(misoBytes[0]);
+            dataOld = static_cast<T>(misoBytes[1]);
             return status | IcStatus::TestBit;
         }
     };
