@@ -2,7 +2,7 @@
 
 namespace PiSubmarine::Drv8908
 {
-    Device::Device(SPI::Api::IDriver& spiDriver, GPIO::Api::IPinGroup& pinGroup): m_SpiDriver(spiDriver),
+    Device::Device(SPI::Api::IDriver& spiDriver, GPIO::Api::IPinGroup& pinGroup) : m_SpiDriver(spiDriver),
         m_PinGroup(pinGroup)
     {
         if (m_PinGroup.Num() != RequiredGpioPinsNum)
@@ -311,6 +311,25 @@ namespace PiSubmarine::Drv8908
     {
         const auto reg = static_cast<Register>(static_cast<uint8_t>(Register::PwmDutyCtrl1) + channel);
         const auto status = ReadRegister(reg, value);
+        return status;
+    }
+
+    IcStatus Device::SetDutyCycle(PwmGenerator generator, uint8_t value) const
+    {
+        IcStatus status{0};
+        using namespace RegUtils;
+        for (uint8_t channel = 0; channel < 8; channel++)
+        {
+            PwmGenerator generatorMask = static_cast<PwmGenerator>(1 << channel);
+            if ((generator & generatorMask) != 0)
+            {
+                status = SetDutyCycle(channel, value);
+                if (!IsValid(status))
+                {
+                    return IcStatus{0};
+                }
+            }
+        }
         return status;
     }
 

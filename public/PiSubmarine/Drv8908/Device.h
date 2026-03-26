@@ -185,6 +185,8 @@ namespace PiSubmarine::Drv8908
 
         [[nodiscard]] IcStatus GetDutyCycle(uint8_t channel, uint8_t& value) const;
 
+        [[nodiscard]] IcStatus SetDutyCycle(PwmGenerator generator, uint8_t value) const;
+
         [[nodiscard]] IcStatus SetDutyCycle(uint8_t channel, uint8_t value) const;
 
         [[nodiscard]] IcStatus SetHalfBridgePwmModes(HalfBridge channelMask) const;
