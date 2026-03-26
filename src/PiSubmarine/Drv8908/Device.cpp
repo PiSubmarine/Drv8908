@@ -277,15 +277,14 @@ namespace PiSubmarine::Drv8908
 
         uint8_t regData = 0;
         IcStatus status = ReadRegister(reg, regData);
-        if ((status & (IcStatus::TestBit)) == 0)
+        if (!IsValid(status))
         {
-            return static_cast<IcStatus>(0);
+            return IcStatus{0};
         }
 
         regData &= ~(0b111 << bitOffset);
         regData |= pwmChannel << bitOffset;
-        uint8_t regOld = 0;
-        status = WriteRegister(reg, regData, regOld);
+        status = WriteRegister(reg, regData);
         return status;
     }
 
@@ -371,15 +370,19 @@ namespace PiSubmarine::Drv8908
         return status;
     }
 
-    IcStatus Device::DisableOpenLoadDetect(HalfBridge channelMask) const
+    IcStatus Device::SetEnabledOpenLoadDetect(HalfBridge channelMask) const
     {
-        HalfBridge oldMask;
-        return WriteRegister(Register::OldCtrl1, channelMask, oldMask);
+        using namespace RegUtils;
+        return WriteRegister(Register::OldCtrl1, ~channelMask);
     }
 
-    IcStatus Device::GetDisabledOpenLoadDetect(HalfBridge& channels) const
+    IcStatus Device::GetEnabledOpenLoadDetect(HalfBridge& channels) const
     {
-        return ReadRegister(Register::OldCtrl1, channels);
+        using namespace RegUtils;
+        HalfBridge disabledOld{0};
+        auto status = ReadRegister(Register::OldCtrl1, disabledOld);
+        channels = ~disabledOld;
+        return status;
     }
 
     IcStatus Device::SetOpenLoadDetectControl2(const OpenLoadDetectControl& value) const

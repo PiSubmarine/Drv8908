@@ -203,9 +203,9 @@ namespace PiSubmarine::Drv8908
 
         [[nodiscard]] IcStatus GetEnabledPwmGenerators(PwmGenerator& channels) const;
 
-        [[nodiscard]] IcStatus DisableOpenLoadDetect(HalfBridge channelMask) const;
+        [[nodiscard]] IcStatus SetEnabledOpenLoadDetect(HalfBridge channelMask) const;
 
-        [[nodiscard]] IcStatus GetDisabledOpenLoadDetect(HalfBridge& channels) const;
+        [[nodiscard]] IcStatus GetEnabledOpenLoadDetect(HalfBridge& channels) const;
 
         [[nodiscard]] IcStatus SetOpenLoadDetectControl2(const OpenLoadDetectControl& value) const;
 
