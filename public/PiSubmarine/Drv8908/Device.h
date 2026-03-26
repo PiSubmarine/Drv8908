@@ -131,9 +131,9 @@ namespace PiSubmarine::Drv8908
     {
     public:
         constexpr static size_t RequiredGpioPinsNum = 2;
-        constexpr static size_t NFaultPinIndex = 0;
-        constexpr static size_t NSleepPinIndex = 1;
-        constexpr static std::array<GPIO::Api::Direction, 2> PinDirections {GPIO::Api::Direction::Input, GPIO::Api::Direction::Output};
+        constexpr static size_t NSleepPinIndex = 0;
+        constexpr static size_t NFaultPinIndex = 1;
+        constexpr static std::array<GPIO::Api::Direction, 2> PinDirections {GPIO::Api::Direction::Output, GPIO::Api::Direction::Input};
 
         explicit Device(SPI::Api::IDriver& spiDriver, GPIO::Api::IPinGroup& pinGroup);
 
