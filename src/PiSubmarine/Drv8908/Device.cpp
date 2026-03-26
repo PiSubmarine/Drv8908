@@ -12,8 +12,8 @@ namespace PiSubmarine::Drv8908
                 + std::to_string(m_PinGroup.Num()));
         }
         GPIO::Api::Directions directions{0};
-        directions.Set(NFaultPinIndex, PinDirections[NFaultPinIndex]);
         directions.Set(NSleepPinIndex, PinDirections[NSleepPinIndex]);
+        directions.Set(NFaultPinIndex, PinDirections[NFaultPinIndex]);
         pinGroup.SetDirections(directions);
     }
 
@@ -34,7 +34,7 @@ namespace PiSubmarine::Drv8908
 
     bool Device::HasFault() const
     {
-        return m_PinGroup.GetLevels().Get(NSleepPinIndex) == GPIO::Api::Level::Low;
+        return m_PinGroup.GetLevels().Get(NFaultPinIndex) == GPIO::Api::Level::Low;
     }
 
     IcStatus Device::GetOpenLoadStatus(OverCurrentStatus& ovp) const
