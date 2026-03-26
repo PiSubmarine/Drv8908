@@ -37,6 +37,12 @@ namespace PiSubmarine::Drv8908
         return m_PinGroup.GetLevels().Get(NFaultPinIndex) == GPIO::Api::Level::Low;
     }
 
+    IcStatus Device::GetStatus(IcStatus& icStat) const
+    {
+        IcStatus status = ReadRegister(Register::IcStat, icStat);
+        return status;
+    }
+
     IcStatus Device::GetOpenLoadStatus(OpenLoadStatus& ovp) const
     {
         using namespace RegUtils;
