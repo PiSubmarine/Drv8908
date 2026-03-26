@@ -364,7 +364,11 @@ namespace PiSubmarine::Drv8908
 
     IcStatus Device::GetEnabledPwmGenerators(PwmGenerator& channels) const
     {
-        return ReadRegister(Register::PwmCtrl2, channels);
+        using namespace RegUtils;
+        PwmGenerator disabledGenerators{0};
+        auto status = ReadRegister(Register::PwmCtrl2, disabledGenerators);
+        channels = ~disabledGenerators;
+        return status;
     }
 
     IcStatus Device::DisableOpenLoadDetect(HalfBridge channelMask) const
