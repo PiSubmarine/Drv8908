@@ -356,8 +356,10 @@ namespace PiSubmarine::Drv8908
 
     IcStatus Device::EnablePwmGenerators(PwmGenerator channelMask) const
     {
+        using namespace RegUtils;
         PwmGenerator oldMask;
-        return WriteRegister(Register::PwmCtrl2, channelMask, oldMask);
+        // 0 - PWM enabled, need to inverse
+        return WriteRegister(Register::PwmCtrl2, ~channelMask, oldMask);
     }
 
     IcStatus Device::GetEnabledPwmGenerators(PwmGenerator& channels) const
