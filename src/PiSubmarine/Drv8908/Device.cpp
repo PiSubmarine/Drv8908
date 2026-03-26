@@ -354,7 +354,7 @@ namespace PiSubmarine::Drv8908
         return ReadRegister(Register::SrCtrl1, channels);
     }
 
-    IcStatus Device::EnablePwmGenerators(PwmGenerator channelMask) const
+    IcStatus Device::SetEnabledPwmGenerators(PwmGenerator channelMask) const
     {
         using namespace RegUtils;
         PwmGenerator oldMask;

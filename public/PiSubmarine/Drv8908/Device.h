@@ -199,7 +199,7 @@ namespace PiSubmarine::Drv8908
 
         [[nodiscard]] IcStatus GetHalfBridgeFastSlewRate(HalfBridge& channels) const;
 
-        [[nodiscard]] IcStatus EnablePwmGenerators(PwmGenerator channelMask) const;
+        [[nodiscard]] IcStatus SetEnabledPwmGenerators(PwmGenerator channelMask) const;
 
         [[nodiscard]] IcStatus GetEnabledPwmGenerators(PwmGenerator& channels) const;
 
