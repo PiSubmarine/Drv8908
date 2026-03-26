@@ -250,7 +250,7 @@ namespace PiSubmarine::Drv8908
             }
             const auto status = static_cast<IcStatus>(misoBytes[0]);
             regData = static_cast<T>(misoBytes[1]);
-            return status;
+            return status & ~(IcStatus::OverTemperatureShutdown);
         }
 
         template <typename T, typename = std::enable_if_t<sizeof(T) == 1>>
@@ -278,7 +278,7 @@ namespace PiSubmarine::Drv8908
             }
             const auto status = static_cast<IcStatus>(misoBytes[0]);
             dataOld = static_cast<T>(misoBytes[1]);
-            return status;
+            return status & ~(IcStatus::OverTemperatureShutdown);
         }
     };
 }
