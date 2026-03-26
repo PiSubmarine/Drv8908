@@ -124,7 +124,7 @@ namespace PiSubmarine::Drv8908
     constexpr bool IsValid(IcStatus status)
     {
         using namespace RegUtils;
-        return (status & IcStatus::TestBit) == 0;
+        return (status & IcStatus::TestBit) != 0;
     }
 
     class Device
