@@ -141,7 +141,7 @@ namespace PiSubmarine::Drv8908
         [[nodiscard]] bool IsSleeping() const;
         [[nodiscard]] bool HasFault() const;
 
-        IcStatus GetOpenLoadStatus(OverCurrentStatus& ovp) const;
+        IcStatus GetOpenLoadStatus(OpenLoadStatus& ovp) const;
 
         IcStatus GetOvercurrentStatus(OverCurrentStatus& ovp) const;
 

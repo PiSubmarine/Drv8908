@@ -37,7 +37,7 @@ namespace PiSubmarine::Drv8908
         return m_PinGroup.GetLevels().Get(NFaultPinIndex) == GPIO::Api::Level::Low;
     }
 
-    IcStatus Device::GetOpenLoadStatus(OverCurrentStatus& ovp) const
+    IcStatus Device::GetOpenLoadStatus(OpenLoadStatus& ovp) const
     {
         using namespace RegUtils;
 
@@ -51,7 +51,7 @@ namespace PiSubmarine::Drv8908
         }
 
         status = ReadRegister(Register::OldStat1, old2);
-        ovp = static_cast<OverCurrentStatus>((old2 << 8) + old1);
+        ovp = static_cast<OpenLoadStatus>((old2 << 8) + old1);
         return status;
     }
 
