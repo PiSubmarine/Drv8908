@@ -175,6 +175,7 @@ namespace PiSubmarine::Drv8908
 
         [[nodiscard]] IcStatus SetHalfBridgeEnabled(uint8_t hbIndex, bool high, bool low) const;
 
+        [[nodiscard]] IcStatus SetPwmFrequency(PwmGenerator generator, PwmFrequency freq) const;
         [[nodiscard]] IcStatus SetPwmFrequency(uint8_t channel, PwmFrequency freq) const;
 
         [[nodiscard]] IcStatus GetPwmFrequency(uint8_t channel, PwmFrequency& freq) const;

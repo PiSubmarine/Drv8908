@@ -210,6 +210,25 @@ namespace PiSubmarine::Drv8908
         return status;
     }
 
+    IcStatus Device::SetPwmFrequency(PwmGenerator generator, PwmFrequency freq) const
+    {
+        IcStatus status{0};
+        using namespace RegUtils;
+        for (uint8_t channel = 0; channel < 8; channel++)
+        {
+            PwmGenerator generatorMask = static_cast<PwmGenerator>(1 << channel);
+            if ((generator & generatorMask) != 0)
+            {
+                status = SetPwmFrequency(channel, freq);
+                if (!IsValid(status))
+                {
+                    return IcStatus{0};
+                }
+            }
+        }
+        return status;
+    }
+
     IcStatus Device::SetPwmFrequency(uint8_t channel, PwmFrequency freq) const
     {
         using namespace RegUtils;
