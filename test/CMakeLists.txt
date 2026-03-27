@@ -4,8 +4,11 @@ include(FetchContent)
 
 project(PiSubmarine.Drv8908.Test LANGUAGES CXX)
 
-set(PiSubmarine.Drv8908.Test.Sources 
-	"PiSubmarine/Drv8908/DeviceTest.cpp")
+set(PiSubmarine.Drv8908.Test.Sources
+        "PiSubmarine/Drv8908/DeviceTest.cpp"
+        "PiSubmarine/Drv8908/HalfBridgeTest.cpp"
+        "PiSubmarine/Drv8908/PwmGeneratorTest.cpp"
+)
 
 enable_testing()
 
