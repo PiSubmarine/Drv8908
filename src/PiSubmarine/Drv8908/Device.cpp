@@ -210,6 +210,25 @@ namespace PiSubmarine::Drv8908
         return status;
     }
 
+    IcStatus Device::SetHalfBridgeEnabled(HalfBridge hBridges, bool high, bool low) const
+    {
+        IcStatus status{0};
+        using namespace RegUtils;
+        for (uint8_t channel = 0; channel < 8; channel++)
+        {
+            auto mask = static_cast<HalfBridge>(1 << channel);
+            if ((hBridges & mask) != 0)
+            {
+                status = SetHalfBridgeEnabled(channel, high, low);
+                if (!IsValid(status))
+                {
+                    return IcStatus{0};
+                }
+            }
+        }
+        return status;
+    }
+
     IcStatus Device::SetPwmFrequency(PwmGenerator generator, PwmFrequency freq) const
     {
         IcStatus status{0};
