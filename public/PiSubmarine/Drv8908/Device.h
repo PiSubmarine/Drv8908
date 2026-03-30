@@ -7,8 +7,9 @@
 #include "PiSubmarine/SPI/Api/IDriver.h"
 #include "PiSubmarine/Drv8908/Register.h"
 #include "PiSubmarine/GPIO/Api/IDriver.h"
-#include "PiSubmarine/Drv8908/PwmGenerator.h"
-#include "PiSubmarine/Drv8908/HalfBridge.h"
+#include "PiSubmarine/Drv8908/PwmGeneratorBitMask.h"
+#include "PiSubmarine/Drv8908/HalfBridgeBitMask.h"
+#include "PiSubmarine/NormalizedIntFraction.h"
 
 namespace PiSubmarine::Drv8908
 {
@@ -168,50 +169,50 @@ namespace PiSubmarine::Drv8908
          * - HBx_HS_EN (High-Side Enable)
          * - HBx_LS_EN (Low-Side Enable)
          *
-         * @param hbIndex The 0-based index of the half-bridge (0-7 for DRV8908).
+         * @param hb The 0-based index of the half-bridge (0-7 for DRV8908).
          * @param[out] high Set to true if the high-side switch is enabled, false otherwise.
          * @param[out] low Set to true if the low-side switch is enabled, false otherwise.
          * @return The IC status read from the SPI transaction. Returns 0 on SPI communication failure.
          */
-        IcStatus IsHalfBridgeEnabled(uint8_t hbIndex, bool& high, bool& low) const;
+        IcStatus IsHalfBridgeEnabled(HalfBridge hb, bool& high, bool& low) const;
 
-        [[nodiscard]] IcStatus SetHalfBridgeEnabled(uint8_t hbIndex, bool high, bool low) const;
-        [[nodiscard]] IcStatus SetHalfBridgeEnabled(HalfBridge hBridges, bool high, bool low) const;
+        [[nodiscard]] IcStatus SetHalfBridgeEnabled(HalfBridge hb, bool high, bool low) const;
+        [[nodiscard]] IcStatus SetHalfBridgeEnabled(HalfBridgeBitMask hBridges, bool high, bool low) const;
 
+        [[nodiscard]] IcStatus SetPwmFrequency(PwmGeneratorBitMask generator, PwmFrequency freq) const;
         [[nodiscard]] IcStatus SetPwmFrequency(PwmGenerator generator, PwmFrequency freq) const;
-        [[nodiscard]] IcStatus SetPwmFrequency(uint8_t channel, PwmFrequency freq) const;
 
-        [[nodiscard]] IcStatus GetPwmFrequency(uint8_t channel, PwmFrequency& freq) const;
+        [[nodiscard]] IcStatus GetPwmFrequency(PwmGenerator generator, PwmFrequency& freq) const;
 
-        [[nodiscard]] IcStatus SetPwmMap(uint8_t halfBridgeIndex, uint8_t pwmChannel) const;
+        [[nodiscard]] IcStatus SetPwmMap(HalfBridge hb, PwmGenerator generator) const;
 
-        [[nodiscard]] IcStatus GetPwmMap(uint8_t halfBridgeIndex, uint8_t& pwmChannel) const;
+        [[nodiscard]] IcStatus GetPwmMap(HalfBridge hb, PwmGenerator& generator) const;
 
-        [[nodiscard]] IcStatus GetDutyCycle(uint8_t channel, uint8_t& value) const;
+        [[nodiscard]] IcStatus GetDutyCycle(PwmGenerator generator, NormalizedIntFraction<8>& value) const;
 
-        [[nodiscard]] IcStatus SetDutyCycle(PwmGenerator generator, uint8_t value) const;
+        [[nodiscard]] IcStatus SetDutyCycle(PwmGeneratorBitMask generator, NormalizedIntFraction<8> value) const;
 
-        [[nodiscard]] IcStatus SetDutyCycle(uint8_t channel, uint8_t value) const;
+        [[nodiscard]] IcStatus SetDutyCycle(PwmGenerator generator, NormalizedIntFraction<8> value) const;
 
-        [[nodiscard]] IcStatus SetHalfBridgePwmModes(HalfBridge channelMask) const;
+        [[nodiscard]] IcStatus SetHalfBridgePwmModes(HalfBridgeBitMask channelMask) const;
 
-        [[nodiscard]] IcStatus GetHalfBridgePwmModes(HalfBridge& channels) const;
+        [[nodiscard]] IcStatus GetHalfBridgePwmModes(HalfBridgeBitMask& channels) const;
 
-        [[nodiscard]] IcStatus SetHalfBridgeActiveFreeWheeling(HalfBridge channelMask) const;
+        [[nodiscard]] IcStatus SetHalfBridgeActiveFreeWheeling(HalfBridgeBitMask channelMask) const;
 
-        [[nodiscard]] IcStatus GetHalfBridgeActiveFreeWheeling(HalfBridge& channels) const;
+        [[nodiscard]] IcStatus GetHalfBridgeActiveFreeWheeling(HalfBridgeBitMask& channels) const;
 
-        [[nodiscard]] IcStatus SetHalfBridgeFastSlewRate(HalfBridge channelMask) const;
+        [[nodiscard]] IcStatus SetHalfBridgeFastSlewRate(HalfBridgeBitMask channelMask) const;
 
-        [[nodiscard]] IcStatus GetHalfBridgeFastSlewRate(HalfBridge& channels) const;
+        [[nodiscard]] IcStatus GetHalfBridgeFastSlewRate(HalfBridgeBitMask& channels) const;
 
-        [[nodiscard]] IcStatus SetEnabledPwmGenerators(PwmGenerator channelMask) const;
+        [[nodiscard]] IcStatus SetEnabledPwmGenerators(PwmGeneratorBitMask channelMask) const;
 
-        [[nodiscard]] IcStatus GetEnabledPwmGenerators(PwmGenerator& channels) const;
+        [[nodiscard]] IcStatus GetEnabledPwmGenerators(PwmGeneratorBitMask& channels) const;
 
-        [[nodiscard]] IcStatus SetEnabledOpenLoadDetect(HalfBridge channelMask) const;
+        [[nodiscard]] IcStatus SetEnabledOpenLoadDetect(HalfBridgeBitMask channelMask) const;
 
-        [[nodiscard]] IcStatus GetEnabledOpenLoadDetect(HalfBridge& channels) const;
+        [[nodiscard]] IcStatus GetEnabledOpenLoadDetect(HalfBridgeBitMask& channels) const;
 
         [[nodiscard]] IcStatus SetOpenLoadDetectControl2(const OpenLoadDetectControl& value) const;
 
@@ -223,17 +224,17 @@ namespace PiSubmarine::Drv8908
         [[nodiscard]] IcStatus GetOpenLoadDetectControl3(OcpDeglitchTime& deglitchTime,
                                                          bool& negativeCurrentOldEnabled) const;
 
-        [[nodiscard]] IcStatus EnableLowCurrentOpenLoadDetect(HalfBridge channelMask) const;
+        [[nodiscard]] IcStatus EnableLowCurrentOpenLoadDetect(HalfBridgeBitMask channelMask) const;
 
-        [[nodiscard]] IcStatus GetEnabledLowCurrentOpenLoadDetect(HalfBridge& channels) const;
+        [[nodiscard]] IcStatus GetEnabledLowCurrentOpenLoadDetect(HalfBridgeBitMask& channels) const;
 
-        [[nodiscard]] IcStatus EnablePassiveOpenLoadDetect(HalfBridge channelMask) const;
+        [[nodiscard]] IcStatus EnablePassiveOpenLoadDetect(HalfBridgeBitMask channelMask) const;
 
-        [[nodiscard]] IcStatus GetEnabledPassiveOpenLoadDetect(HalfBridge& channels) const;
+        [[nodiscard]] IcStatus GetEnabledPassiveOpenLoadDetect(HalfBridgeBitMask& channels) const;
 
-        [[nodiscard]] IcStatus EnablePassiveVmOpenLoadDetect(HalfBridge channelMask) const;
+        [[nodiscard]] IcStatus EnablePassiveVmOpenLoadDetect(HalfBridgeBitMask channelMask) const;
 
-        [[nodiscard]] IcStatus GetEnabledPassiveVmOpenLoadDetect(HalfBridge& channels) const;
+        [[nodiscard]] IcStatus GetEnabledPassiveVmOpenLoadDetect(HalfBridgeBitMask& channels) const;
 
     private:
         SPI::Api::IDriver& m_SpiDriver;

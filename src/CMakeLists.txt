@@ -12,3 +12,6 @@ target_link_libraries(PiSubmarine.Drv8908 PUBLIC PiSubmarine.SPI.Api)
 
 PiSubmarineAddDependency("https://github.com/PiSubmarine/GPIO.Api" "")
 target_link_libraries(PiSubmarine.Drv8908 PUBLIC PiSubmarine.GPIO.Api)
+
+PiSubmarineAddDependency("https://github.com/PiSubmarine/Units" "")
+target_link_libraries(PiSubmarine.Drv8908 PUBLIC PiSubmarine.Units)

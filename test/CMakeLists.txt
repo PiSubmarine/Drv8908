@@ -6,8 +6,8 @@ project(PiSubmarine.Drv8908.Test LANGUAGES CXX)
 
 set(PiSubmarine.Drv8908.Test.Sources
         "PiSubmarine/Drv8908/DeviceTest.cpp"
-        "PiSubmarine/Drv8908/HalfBridgeTest.cpp"
-        "PiSubmarine/Drv8908/PwmGeneratorTest.cpp"
+        "PiSubmarine/Drv8908/HalfBridgeBitMaskTest.cpp"
+        "PiSubmarine/Drv8908/PwmGeneratorBitMaskTest.cpp"
 )
 
 enable_testing()

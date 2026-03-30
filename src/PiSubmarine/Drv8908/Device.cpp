@@ -127,7 +127,7 @@ namespace PiSubmarine::Drv8908
         return WriteRegister(Register::ConfigCtrl, configCtrlByte, dataOld);
     }
 
-    IcStatus Device::IsHalfBridgeEnabled(uint8_t hbIndex, bool& high, bool& low) const
+    IcStatus Device::IsHalfBridgeEnabled(HalfBridge hb, bool& high, bool& low) const
     {
         using namespace RegUtils;
 
@@ -136,7 +136,7 @@ namespace PiSubmarine::Drv8908
 
         // Determine which Operation Control register to read based on the half-bridge index.
         Register regAddr;
-        if (hbIndex < 4)
+        if (static_cast<uint8_t>(hb) < 4)
         {
             // Half-bridges 0-3 are in OP_CTRL_1
             regAddr = Register::OpCtrl1;
@@ -158,7 +158,7 @@ namespace PiSubmarine::Drv8908
 
         // Calculate the bit offset for the specified half-bridge within the 8-bit register.
         // Each half-bridge uses 2 bits. The modulo operator maps indices 0-3 and 4-7 to 0-3.
-        const uint8_t bitOffset = (hbIndex % 4) * 2;
+        const uint8_t bitOffset = (static_cast<uint8_t>(hb) % 4) * 2;
 
         // Isolate and check the high-side and low-side enable bits.
         // The high-side bit is the most significant bit of the pair.
@@ -169,12 +169,12 @@ namespace PiSubmarine::Drv8908
         return status;
     }
 
-    IcStatus Device::SetHalfBridgeEnabled(uint8_t hbIndex, bool high, bool low) const
+    IcStatus Device::SetHalfBridgeEnabled(HalfBridge hb, bool high, bool low) const
     {
         using namespace RegUtils;
 
         Register reg;
-        if (hbIndex < 4)
+        if (static_cast<uint8_t>(hb) < 4)
         {
             reg = Register::OpCtrl1;
         }
@@ -190,7 +190,7 @@ namespace PiSubmarine::Drv8908
             return static_cast<IcStatus>(0);
         }
 
-        const uint8_t bitOffset = (hbIndex % 4) * 2;
+        const uint8_t bitOffset = (static_cast<uint8_t>(hb) % 4) * 2;
 
         regData &= ~(0b11 << bitOffset);
 
@@ -210,16 +210,35 @@ namespace PiSubmarine::Drv8908
         return status;
     }
 
-    IcStatus Device::SetHalfBridgeEnabled(HalfBridge hBridges, bool high, bool low) const
+    IcStatus Device::SetHalfBridgeEnabled(HalfBridgeBitMask hBridges, bool high, bool low) const
     {
         IcStatus status{0};
         using namespace RegUtils;
         for (uint8_t channel = 0; channel < 8; channel++)
         {
-            auto mask = static_cast<HalfBridge>(1 << channel);
+            auto mask = static_cast<HalfBridgeBitMask>(1 << channel);
             if ((hBridges & mask) != 0)
             {
-                status = SetHalfBridgeEnabled(channel, high, low);
+                status = SetHalfBridgeEnabled(static_cast<HalfBridge>(channel), high, low);
+                if (!IsValid(status))
+                {
+                    return IcStatus{0};
+                }
+            }
+        }
+        return status;
+    }
+
+    IcStatus Device::SetPwmFrequency(PwmGeneratorBitMask generator, PwmFrequency freq) const
+    {
+        IcStatus status{0};
+        using namespace RegUtils;
+        for (uint8_t channel = 0; channel < 8; channel++)
+        {
+            auto generatorMask = static_cast<PwmGeneratorBitMask>(1 << channel);
+            if ((generator & generatorMask) != 0)
+            {
+                status = SetPwmFrequency(static_cast<PwmGenerator>(channel), freq);
                 if (!IsValid(status))
                 {
                     return IcStatus{0};
@@ -231,29 +250,10 @@ namespace PiSubmarine::Drv8908
 
     IcStatus Device::SetPwmFrequency(PwmGenerator generator, PwmFrequency freq) const
     {
-        IcStatus status{0};
-        using namespace RegUtils;
-        for (uint8_t channel = 0; channel < 8; channel++)
-        {
-            PwmGenerator generatorMask = static_cast<PwmGenerator>(1 << channel);
-            if ((generator & generatorMask) != 0)
-            {
-                status = SetPwmFrequency(channel, freq);
-                if (!IsValid(status))
-                {
-                    return IcStatus{0};
-                }
-            }
-        }
-        return status;
-    }
-
-    IcStatus Device::SetPwmFrequency(uint8_t channel, PwmFrequency freq) const
-    {
         using namespace RegUtils;
 
         Register reg;
-        if (channel < 4)
+        if (static_cast<uint8_t>(generator) < 4)
         {
             reg = Register::PwmFreqCtrl1;
         }
@@ -262,7 +262,7 @@ namespace PiSubmarine::Drv8908
             reg = Register::PwmFreqCtrl2;
         }
 
-        const uint8_t bitOffset = (channel % 4) * 2;
+        const uint8_t bitOffset = (static_cast<uint8_t>(generator) % 4) * 2;
         uint8_t regData = 0;
         IcStatus status = ReadRegister(reg, regData);
         if ((status & (IcStatus::TestBit)) == 0)
@@ -278,12 +278,12 @@ namespace PiSubmarine::Drv8908
         return status;
     }
 
-    IcStatus Device::GetPwmFrequency(uint8_t channel, PwmFrequency& freq) const
+    IcStatus Device::GetPwmFrequency(PwmGenerator generator, PwmFrequency& freq) const
     {
         using namespace RegUtils;
 
         Register reg;
-        if (channel < 4)
+        if (static_cast<uint8_t>(generator) < 4)
         {
             reg = Register::PwmFreqCtrl1;
         }
@@ -292,7 +292,7 @@ namespace PiSubmarine::Drv8908
             reg = Register::PwmFreqCtrl2;
         }
 
-        const uint8_t bitOffset = (channel % 4) * 2;
+        const uint8_t bitOffset = (static_cast<uint8_t>(generator) % 4) * 2;
 
         uint8_t regData = 0;
         IcStatus status = ReadRegister(reg, regData);
@@ -305,13 +305,13 @@ namespace PiSubmarine::Drv8908
         return status;
     }
 
-    IcStatus Device::SetPwmMap(uint8_t halfBridgeIndex, uint8_t pwmChannel) const
+    IcStatus Device::SetPwmMap(HalfBridge hb, PwmGenerator generator) const
     {
         using namespace RegUtils;
 
-        const uint8_t regShift = halfBridgeIndex / 2;
+        const uint8_t regShift = ToInt(hb) / 2;
         const auto reg = static_cast<Register>(static_cast<uint8_t>(Register::PwmMapCtrl1) + regShift);
-        const uint8_t bitOffset = (halfBridgeIndex % 2) * 3;
+        const uint8_t bitOffset = (ToInt(hb) % 2) * 3;
 
         uint8_t regData = 0;
         IcStatus status = ReadRegister(reg, regData);
@@ -321,18 +321,18 @@ namespace PiSubmarine::Drv8908
         }
 
         regData &= ~(0b111 << bitOffset);
-        regData |= pwmChannel << bitOffset;
+        regData |= ToInt(generator) << bitOffset;
         status = WriteRegister(reg, regData);
         return status;
     }
 
-    IcStatus Device::GetPwmMap(uint8_t halfBridgeIndex, uint8_t& pwmChannel) const
+    IcStatus Device::GetPwmMap(HalfBridge hb, PwmGenerator& generator) const
     {
         using namespace RegUtils;
 
-        const uint8_t regShift = halfBridgeIndex / 2;
+        const uint8_t regShift = ToInt(hb) / 2;
         const auto reg = static_cast<Register>(static_cast<uint8_t>(Register::PwmMapCtrl1) + regShift);
-        const uint8_t bitOffset = (halfBridgeIndex % 2) * 3;
+        const uint8_t bitOffset = (ToInt(hb) % 2) * 3;
 
         uint8_t regData = 0;
         const IcStatus status = ReadRegister(reg, regData);
@@ -341,27 +341,30 @@ namespace PiSubmarine::Drv8908
             return static_cast<IcStatus>(0);
         }
 
-        pwmChannel = ((regData >> bitOffset) & 0b111);
+        generator = static_cast<PwmGenerator>((regData >> bitOffset) & 0b111);
         return status;
     }
 
-    IcStatus Device::GetDutyCycle(uint8_t channel, uint8_t& value) const
+    IcStatus Device::GetDutyCycle(PwmGenerator generator, NormalizedIntFraction<8>& value) const
     {
-        const auto reg = static_cast<Register>(static_cast<uint8_t>(Register::PwmDutyCtrl1) + channel);
-        const auto status = ReadRegister(reg, value);
+        using namespace RegUtils;
+        const auto reg = static_cast<Register>(static_cast<uint8_t>(Register::PwmDutyCtrl1) + ToInt(generator));
+        uint8_t regData = 0;
+        const auto status = ReadRegister(reg, regData);
+        value = NormalizedIntFraction<8>(regData);
         return status;
     }
 
-    IcStatus Device::SetDutyCycle(PwmGenerator generator, uint8_t value) const
+    IcStatus Device::SetDutyCycle(PwmGeneratorBitMask generator, NormalizedIntFraction<8> value) const
     {
         IcStatus status{0};
         using namespace RegUtils;
         for (uint8_t channel = 0; channel < 8; channel++)
         {
-            PwmGenerator generatorMask = static_cast<PwmGenerator>(1 << channel);
+            auto generatorMask = static_cast<PwmGeneratorBitMask>(1 << channel);
             if ((generator & generatorMask) != 0)
             {
-                status = SetDutyCycle(channel, value);
+                status = SetDutyCycle(static_cast<PwmGenerator>(channel), value);
                 if (!IsValid(status))
                 {
                     return IcStatus{0};
@@ -371,13 +374,16 @@ namespace PiSubmarine::Drv8908
         return status;
     }
 
-    IcStatus Device::SetDutyCycle(uint8_t channel, uint8_t value) const
+    IcStatus Device::SetDutyCycle(PwmGenerator generator, NormalizedIntFraction<8> value) const
     {
-        const auto reg = static_cast<Register>(static_cast<uint8_t>(Register::PwmDutyCtrl1) + channel);
-        return WriteRegister(reg, value);;
+        using namespace RegUtils;
+
+        const auto reg = static_cast<Register>(static_cast<uint8_t>(Register::PwmDutyCtrl1) + ToInt(generator));
+        uint8_t regData = value.Get();
+        return WriteRegister(reg, regData);
     }
 
-    IcStatus Device::SetHalfBridgePwmModes(HalfBridge channelMask) const
+    IcStatus Device::SetHalfBridgePwmModes(HalfBridgeBitMask channelMask) const
     {
         auto reg = Register::PwmCtrl1;
         uint8_t regData = RegUtils::ToInt(channelMask);
@@ -385,58 +391,58 @@ namespace PiSubmarine::Drv8908
         return status;
     }
 
-    IcStatus Device::GetHalfBridgePwmModes(HalfBridge& channels) const
+    IcStatus Device::GetHalfBridgePwmModes(HalfBridgeBitMask& channels) const
     {
         return ReadRegister(Register::PwmCtrl1, channels);
     }
 
-    IcStatus Device::SetHalfBridgeActiveFreeWheeling(HalfBridge channelMask) const
+    IcStatus Device::SetHalfBridgeActiveFreeWheeling(HalfBridgeBitMask channelMask) const
     {
         return WriteRegister(Register::FwCtrl1, channelMask);
     }
 
-    IcStatus Device::GetHalfBridgeActiveFreeWheeling(HalfBridge& channels) const
+    IcStatus Device::GetHalfBridgeActiveFreeWheeling(HalfBridgeBitMask& channels) const
     {
         return ReadRegister(Register::FwCtrl1, channels);
     }
 
-    IcStatus Device::SetHalfBridgeFastSlewRate(HalfBridge channelMask) const
+    IcStatus Device::SetHalfBridgeFastSlewRate(HalfBridgeBitMask channelMask) const
     {
         return WriteRegister(Register::SrCtrl1, channelMask);
     }
 
-    IcStatus Device::GetHalfBridgeFastSlewRate(HalfBridge& channels) const
+    IcStatus Device::GetHalfBridgeFastSlewRate(HalfBridgeBitMask& channels) const
     {
         return ReadRegister(Register::SrCtrl1, channels);
     }
 
-    IcStatus Device::SetEnabledPwmGenerators(PwmGenerator channelMask) const
+    IcStatus Device::SetEnabledPwmGenerators(PwmGeneratorBitMask channelMask) const
     {
         using namespace RegUtils;
-        PwmGenerator oldMask;
+        PwmGeneratorBitMask oldMask;
         // 0 - PWM enabled, need to inverse
         return WriteRegister(Register::PwmCtrl2, ~channelMask, oldMask);
     }
 
-    IcStatus Device::GetEnabledPwmGenerators(PwmGenerator& channels) const
+    IcStatus Device::GetEnabledPwmGenerators(PwmGeneratorBitMask& channels) const
     {
         using namespace RegUtils;
-        PwmGenerator disabledGenerators{0};
+        PwmGeneratorBitMask disabledGenerators{0};
         auto status = ReadRegister(Register::PwmCtrl2, disabledGenerators);
         channels = ~disabledGenerators;
         return status;
     }
 
-    IcStatus Device::SetEnabledOpenLoadDetect(HalfBridge channelMask) const
+    IcStatus Device::SetEnabledOpenLoadDetect(HalfBridgeBitMask channelMask) const
     {
         using namespace RegUtils;
         return WriteRegister(Register::OldCtrl1, ~channelMask);
     }
 
-    IcStatus Device::GetEnabledOpenLoadDetect(HalfBridge& channels) const
+    IcStatus Device::GetEnabledOpenLoadDetect(HalfBridgeBitMask& channels) const
     {
         using namespace RegUtils;
-        HalfBridge disabledOld{0};
+        HalfBridgeBitMask disabledOld{0};
         auto status = ReadRegister(Register::OldCtrl1, disabledOld);
         channels = ~disabledOld;
         return status;
@@ -481,35 +487,35 @@ namespace PiSubmarine::Drv8908
         return status;
     }
 
-    IcStatus Device::EnableLowCurrentOpenLoadDetect(HalfBridge channelMask) const
+    IcStatus Device::EnableLowCurrentOpenLoadDetect(HalfBridgeBitMask channelMask) const
     {
-        HalfBridge oldMask;
+        HalfBridgeBitMask oldMask;
         return WriteRegister(Register::OldCtrl4, channelMask, oldMask);
     }
 
-    IcStatus Device::GetEnabledLowCurrentOpenLoadDetect(HalfBridge& channels) const
+    IcStatus Device::GetEnabledLowCurrentOpenLoadDetect(HalfBridgeBitMask& channels) const
     {
         return ReadRegister(Register::OldCtrl4, channels);
     }
 
-    IcStatus Device::EnablePassiveOpenLoadDetect(HalfBridge channelMask) const
+    IcStatus Device::EnablePassiveOpenLoadDetect(HalfBridgeBitMask channelMask) const
     {
-        HalfBridge oldMask;
+        HalfBridgeBitMask oldMask;
         return WriteRegister(Register::OldCtrl5, channelMask, oldMask);
     }
 
-    IcStatus Device::GetEnabledPassiveOpenLoadDetect(HalfBridge& channels) const
+    IcStatus Device::GetEnabledPassiveOpenLoadDetect(HalfBridgeBitMask& channels) const
     {
         return ReadRegister(Register::OldCtrl5, channels);
     }
 
-    IcStatus Device::EnablePassiveVmOpenLoadDetect(HalfBridge channelMask) const
+    IcStatus Device::EnablePassiveVmOpenLoadDetect(HalfBridgeBitMask channelMask) const
     {
-        HalfBridge oldMask;
+        HalfBridgeBitMask oldMask;
         return WriteRegister(Register::OldCtrl6, channelMask, oldMask);
     }
 
-    IcStatus Device::GetEnabledPassiveVmOpenLoadDetect(HalfBridge& channels) const
+    IcStatus Device::GetEnabledPassiveVmOpenLoadDetect(HalfBridgeBitMask& channels) const
     {
         using namespace RegUtils;
         return ReadRegister(Register::OldCtrl6, channels);
