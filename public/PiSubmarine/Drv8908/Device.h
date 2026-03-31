@@ -185,6 +185,7 @@ namespace PiSubmarine::Drv8908
         [[nodiscard]] IcStatus GetPwmFrequency(PwmGenerator generator, PwmFrequency& freq) const;
 
         [[nodiscard]] IcStatus SetPwmMap(HalfBridge hb, PwmGenerator generator) const;
+        [[nodiscard]] IcStatus SetPwmMap(HalfBridgeBitMask hbMask, PwmGenerator generator) const;
 
         [[nodiscard]] IcStatus GetPwmMap(HalfBridge hb, PwmGenerator& generator) const;
 

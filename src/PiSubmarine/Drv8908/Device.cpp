@@ -326,6 +326,25 @@ namespace PiSubmarine::Drv8908
         return status;
     }
 
+    IcStatus Device::SetPwmMap(HalfBridgeBitMask hbMask, PwmGenerator generator) const
+    {
+        IcStatus status{0};
+        using namespace RegUtils;
+        for (uint8_t channel = 0; channel < 8; channel++)
+        {
+            auto mask = static_cast<HalfBridgeBitMask>(1 << channel);
+            if ((hbMask & mask) != 0)
+            {
+                status = SetPwmMap(static_cast<HalfBridge>(channel), generator);
+                if (!IsValid(status))
+                {
+                    return IcStatus{0};
+                }
+            }
+        }
+        return status;
+    }
+
     IcStatus Device::GetPwmMap(HalfBridge hb, PwmGenerator& generator) const
     {
         using namespace RegUtils;
