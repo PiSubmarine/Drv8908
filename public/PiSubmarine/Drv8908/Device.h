@@ -1,134 +1,17 @@
 #pragma once
 
-#include <stdexcept>
-#include <string>
 #include <array>
 #include "PiSubmarine/RegUtils.h"
 #include "PiSubmarine/SPI/Api/IDriver.h"
-#include "PiSubmarine/Drv8908/Register.h"
 #include "PiSubmarine/GPIO/Api/IDriver.h"
-#include "PiSubmarine/Drv8908/PwmGeneratorBitMask.h"
-#include "PiSubmarine/Drv8908/HalfBridgeBitMask.h"
-#include "PiSubmarine/NormalizedIntFraction.h"
+#include "PiSubmarine/Drv8908/IDevice.h"
+#include <stdexcept>
 
 namespace PiSubmarine::Drv8908
 {
-    enum class IcStatus : uint8_t
-    {
-        NoPowerOnReset = (1 << 0),
-        OverVoltage = (1 << 1),
-        UnderVoltage = (1 << 2),
-        OverCurrent = (1 << 3),
-        OpenLoad = (1 << 4),
-        OverTemperatureWarning = (1 << 5),
-        OverTemperatureShutdown = (1 << 6),
-        TestBit = (1 << 7) // This bit it reserved, so can be used by the code to report read/write errors.
-    };
 
-    enum class OverCurrentStatus
-    {
-        HB1_LS_OCP = (1 << 0),
-        HB1_HS_OCP = (1 << 1),
-        HB2_LS_OCP = (1 << 2),
-        HB2_HS_OCP = (1 << 3),
-        HB3_LS_OCP = (1 << 4),
-        HB3_HS_OCP = (1 << 5),
-        HB4_LS_OCP = (1 << 6),
-        HB4_HS_OCP = (1 << 7),
-        HB5_LS_OCP = (1 << 8),
-        HB5_HS_OCP = (1 << 9),
-        HB6_LS_OCP = (1 << 10),
-        HB6_HS_OCP = (1 << 11),
-        HB7_LS_OCP = (1 << 12),
-        HB7_HS_OCP = (1 << 13),
-        HB8_LS_OCP = (1 << 14),
-        HB8_HS_OCP = (1 << 15)
-    };
 
-    enum class OpenLoadStatus
-    {
-        HB1_LS_OLD = (1 << 0),
-        HB1_HS_OLD = (1 << 1),
-        HB2_LS_OLD = (1 << 2),
-        HB2_HS_OLD = (1 << 3),
-        HB3_LS_OLD = (1 << 4),
-        HB3_HS_OLD = (1 << 5),
-        HB4_LS_OLD = (1 << 6),
-        HB4_HS_OLD = (1 << 7),
-        HB5_LS_OLD = (1 << 8),
-        HB5_HS_OLD = (1 << 9),
-        HB6_LS_OLD = (1 << 10),
-        HB6_HS_OLD = (1 << 11),
-        HB7_LS_OLD = (1 << 12),
-        HB7_HS_OLD = (1 << 13),
-        HB8_LS_OLD = (1 << 14),
-        HB8_HS_OLD = (1 << 15)
-    };
-
-    enum class ConfigCtrlFields : uint8_t
-    {
-        CLR_FLT = 1 << 0,
-        EXT_OVP = 1 << 1,
-        OTW_REP = 1 << 2,
-        OCP_REP = 1 << 3,
-        IC_ID = 1 << 4,
-        POLD_EN = 1 << 7 // Passive OLD
-    };
-
-    enum class IcId : uint8_t
-    {
-        DRV8912 = 0b000,
-        DRV8910 = 0b001,
-        DRV8908 = 0b010,
-        DRV8906 = 0b011,
-        DRV8904 = 0b100
-    };
-
-    enum class OpenLoadDetectControl : uint8_t
-    {
-        // 0 - 3 reserved on DRV8908
-        PlModeEn = 1 << 4,
-        OldOp = 1 << 6,
-        OldRep = 1 << 7
-    };
-
-    enum class OcpDeglitchTime : uint8_t
-    {
-        MicroSeconds10 = 0,
-        MicroSeconds5,
-        MicroSeconds2_5,
-        MicroSeconds1,
-        MicroSeconds60,
-        MicroSeconds40,
-        MicroSeconds30,
-        MicroSeconds20
-    };
-
-    struct ConfigCtrl
-    {
-        bool PoldEn; // Passive OLD
-        IcId Id;
-        bool OcpRep; // 0 - Overcurrent reported in nFAULT pin, 1 - overcurrent NOT reported in nFAULT
-        bool OtwRep; // 0 - Overtemperature NOT reported in nFAULT pin, 1 - Overtemperature reported in nFAULT pin
-        bool ExtOvp; // 0 - 21 Volts OVP, 1 - 33 Volts OVP
-        bool ClrFlt; // Write 1 to clear faults. Always reads as 0.
-    };
-
-    enum class PwmFrequency
-    {
-        Hz80,
-        Hz100,
-        Hz200,
-        Hz2000
-    };
-
-    constexpr bool IsValid(IcStatus status)
-    {
-        using namespace RegUtils;
-        return (status & IcStatus::TestBit) != 0;
-    }
-
-    class Device
+    class Device : public IDevice
     {
     public:
         constexpr static size_t RequiredGpioPinsNum = 2;
@@ -140,19 +23,19 @@ namespace PiSubmarine::Drv8908
 
         explicit Device(SPI::Api::IDriver& spiDriver, GPIO::Api::IPinGroup& pinGroup);
 
-        void SetSleeping(bool sleepEnabled) const;
-        [[nodiscard]] bool IsSleeping() const;
-        [[nodiscard]] bool HasFault() const;
+        void SetSleeping(bool sleepEnabled) const override;
+        [[nodiscard]] bool IsSleeping() const override;
+        [[nodiscard]] bool HasFault() const override;
 
-        IcStatus GetStatus(IcStatus& icStat) const;
+        IcStatus GetStatus(IcStatus& icStat) const override;
 
-        IcStatus GetOpenLoadStatus(OpenLoadStatus& ovp) const;
+        IcStatus GetOpenLoadStatus(OpenLoadStatus& ovp) const override;
 
-        IcStatus GetOvercurrentStatus(OverCurrentStatus& ovp) const;
+        IcStatus GetOvercurrentStatus(OverCurrentStatus& ovp) const override;
 
-        IcStatus GetConfigCtrl(ConfigCtrl& outConfigCtr) const;
+        IcStatus GetConfigCtrl(ConfigCtrl& outConfigCtr) const override;
 
-        [[nodiscard]] IcStatus SetConfigCtrl(const ConfigCtrl& inConfigCtr) const;
+        [[nodiscard]] IcStatus SetConfigCtrl(const ConfigCtrl& inConfigCtr) const override;
 
         /**
          * @brief Checks if a specific half-bridge is enabled.
@@ -174,68 +57,68 @@ namespace PiSubmarine::Drv8908
          * @param[out] low Set to true if the low-side switch is enabled, false otherwise.
          * @return The IC status read from the SPI transaction. Returns 0 on SPI communication failure.
          */
-        IcStatus IsHalfBridgeEnabled(HalfBridge hb, bool& high, bool& low) const;
+        IcStatus IsHalfBridgeEnabled(HalfBridge hb, bool& high, bool& low) const override;
 
-        [[nodiscard]] IcStatus SetHalfBridgeEnabled(HalfBridge hb, bool high, bool low) const;
-        [[nodiscard]] IcStatus SetHalfBridgeEnabled(HalfBridgeBitMask hBridges, bool high, bool low) const;
+        [[nodiscard]] IcStatus SetHalfBridgeEnabled(HalfBridge hb, bool high, bool low) const override;
+        [[nodiscard]] IcStatus SetHalfBridgeEnabled(HalfBridgeBitMask hBridges, bool high, bool low) const override;
 
-        [[nodiscard]] IcStatus SetPwmFrequency(PwmGeneratorBitMask generator, PwmFrequency freq) const;
-        [[nodiscard]] IcStatus SetPwmFrequency(PwmGenerator generator, PwmFrequency freq) const;
+        [[nodiscard]] IcStatus SetPwmFrequency(PwmGeneratorBitMask generator, PwmFrequency freq) const override;
+        [[nodiscard]] IcStatus SetPwmFrequency(PwmGenerator generator, PwmFrequency freq) const override;
 
-        [[nodiscard]] IcStatus GetPwmFrequency(PwmGenerator generator, PwmFrequency& freq) const;
+        [[nodiscard]] IcStatus GetPwmFrequency(PwmGenerator generator, PwmFrequency& freq) const override;
 
-        [[nodiscard]] IcStatus SetPwmMap(HalfBridge hb, PwmGenerator generator) const;
-        [[nodiscard]] IcStatus SetPwmMap(HalfBridgeBitMask hbMask, PwmGenerator generator) const;
+        [[nodiscard]] IcStatus SetPwmMap(HalfBridge hb, PwmGenerator generator) const override;
+        [[nodiscard]] IcStatus SetPwmMap(HalfBridgeBitMask hbMask, PwmGenerator generator) const override;
 
-        [[nodiscard]] IcStatus GetPwmMap(HalfBridge hb, PwmGenerator& generator) const;
+        [[nodiscard]] IcStatus GetPwmMap(HalfBridge hb, PwmGenerator& generator) const override;
 
-        [[nodiscard]] IcStatus GetDutyCycle(PwmGenerator generator, NormalizedIntFraction<8>& value) const;
+        [[nodiscard]] IcStatus GetDutyCycle(PwmGenerator generator, NormalizedIntFraction<8>& value) const override;
 
-        [[nodiscard]] IcStatus SetDutyCycle(PwmGeneratorBitMask generator, NormalizedIntFraction<8> value) const;
+        [[nodiscard]] IcStatus SetDutyCycle(PwmGeneratorBitMask generator, NormalizedIntFraction<8> value) const override;
 
-        [[nodiscard]] IcStatus SetDutyCycle(PwmGenerator generator, NormalizedIntFraction<8> value) const;
+        [[nodiscard]] IcStatus SetDutyCycle(PwmGenerator generator, NormalizedIntFraction<8> value) const override;
 
-        [[nodiscard]] IcStatus SetHalfBridgePwmModes(HalfBridgeBitMask channelMask) const;
+        [[nodiscard]] IcStatus SetHalfBridgePwmModes(HalfBridgeBitMask channelMask) const override;
 
-        [[nodiscard]] IcStatus GetHalfBridgePwmModes(HalfBridgeBitMask& channels) const;
+        [[nodiscard]] IcStatus GetHalfBridgePwmModes(HalfBridgeBitMask& channels) const override;
 
-        [[nodiscard]] IcStatus SetHalfBridgeActiveFreeWheeling(HalfBridgeBitMask channelMask) const;
+        [[nodiscard]] IcStatus SetHalfBridgeActiveFreeWheeling(HalfBridgeBitMask channelMask) const override;
 
-        [[nodiscard]] IcStatus GetHalfBridgeActiveFreeWheeling(HalfBridgeBitMask& channels) const;
+        [[nodiscard]] IcStatus GetHalfBridgeActiveFreeWheeling(HalfBridgeBitMask& channels) const override;
 
-        [[nodiscard]] IcStatus SetHalfBridgeFastSlewRate(HalfBridgeBitMask channelMask) const;
+        [[nodiscard]] IcStatus SetHalfBridgeFastSlewRate(HalfBridgeBitMask channelMask) const override;
 
-        [[nodiscard]] IcStatus GetHalfBridgeFastSlewRate(HalfBridgeBitMask& channels) const;
+        [[nodiscard]] IcStatus GetHalfBridgeFastSlewRate(HalfBridgeBitMask& channels) const override;
 
-        [[nodiscard]] IcStatus SetEnabledPwmGenerators(PwmGeneratorBitMask channelMask) const;
+        [[nodiscard]] IcStatus SetEnabledPwmGenerators(PwmGeneratorBitMask channelMask) const override;
 
-        [[nodiscard]] IcStatus GetEnabledPwmGenerators(PwmGeneratorBitMask& channels) const;
+        [[nodiscard]] IcStatus GetEnabledPwmGenerators(PwmGeneratorBitMask& channels) const override;
 
-        [[nodiscard]] IcStatus SetEnabledOpenLoadDetect(HalfBridgeBitMask channelMask) const;
+        [[nodiscard]] IcStatus SetEnabledOpenLoadDetect(HalfBridgeBitMask channelMask) const override;
 
-        [[nodiscard]] IcStatus GetEnabledOpenLoadDetect(HalfBridgeBitMask& channels) const;
+        [[nodiscard]] IcStatus GetEnabledOpenLoadDetect(HalfBridgeBitMask& channels) const override;
 
-        [[nodiscard]] IcStatus SetOpenLoadDetectControl2(const OpenLoadDetectControl& value) const;
+        [[nodiscard]] IcStatus SetOpenLoadDetectControl2(const OpenLoadDetectControl& value) const override;
 
-        [[nodiscard]] IcStatus GetOpenLoadDetectControl2(OpenLoadDetectControl& value) const;
+        [[nodiscard]] IcStatus GetOpenLoadDetectControl2(OpenLoadDetectControl& value) const override;
 
         [[nodiscard]] IcStatus SetOpenLoadDetectControl3(OcpDeglitchTime deglitchTime,
-                                                         bool negativeCurrentOldEnabled) const;
+                                                         bool negativeCurrentOldEnabled) const override;
 
         [[nodiscard]] IcStatus GetOpenLoadDetectControl3(OcpDeglitchTime& deglitchTime,
-                                                         bool& negativeCurrentOldEnabled) const;
+                                                         bool& negativeCurrentOldEnabled) const override;
 
-        [[nodiscard]] IcStatus EnableLowCurrentOpenLoadDetect(HalfBridgeBitMask channelMask) const;
+        [[nodiscard]] IcStatus EnableLowCurrentOpenLoadDetect(HalfBridgeBitMask channelMask) const override;
 
-        [[nodiscard]] IcStatus GetEnabledLowCurrentOpenLoadDetect(HalfBridgeBitMask& channels) const;
+        [[nodiscard]] IcStatus GetEnabledLowCurrentOpenLoadDetect(HalfBridgeBitMask& channels) const override;
 
-        [[nodiscard]] IcStatus EnablePassiveOpenLoadDetect(HalfBridgeBitMask channelMask) const;
+        [[nodiscard]] IcStatus EnablePassiveOpenLoadDetect(HalfBridgeBitMask channelMask) const override;
 
-        [[nodiscard]] IcStatus GetEnabledPassiveOpenLoadDetect(HalfBridgeBitMask& channels) const;
+        [[nodiscard]] IcStatus GetEnabledPassiveOpenLoadDetect(HalfBridgeBitMask& channels) const override;
 
-        [[nodiscard]] IcStatus EnablePassiveVmOpenLoadDetect(HalfBridgeBitMask channelMask) const;
+        [[nodiscard]] IcStatus EnablePassiveVmOpenLoadDetect(HalfBridgeBitMask channelMask) const override;
 
-        [[nodiscard]] IcStatus GetEnabledPassiveVmOpenLoadDetect(HalfBridgeBitMask& channels) const;
+        [[nodiscard]] IcStatus GetEnabledPassiveVmOpenLoadDetect(HalfBridgeBitMask& channels) const override;
 
     private:
         SPI::Api::IDriver& m_SpiDriver;

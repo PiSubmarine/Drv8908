@@ -1,5 +1,7 @@
 #pragma once
 #include <cstdint>
+#include <stdexcept>
+
 #include "PiSubmarine/RegUtils.h"
 #include "PiSubmarine/Drv8908/PwmGenerator.h"
 

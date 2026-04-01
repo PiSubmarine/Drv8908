@@ -1,4 +1,5 @@
 #include "PiSubmarine/Drv8908/Device.h"
+#include <string>
 
 namespace PiSubmarine::Drv8908
 {
