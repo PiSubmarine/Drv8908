@@ -135,7 +135,7 @@ namespace PiSubmarine::Drv8908
 
             std::array<uint8_t, 2> misoBytes{0};
 
-            if (!m_SpiDriver.WriteRead(mosiBytes.data(), misoBytes.data(), 2))
+            if (!m_SpiDriver.WriteRead(mosiBytes, misoBytes))
             {
                 return static_cast<IcStatus>(0);
             }
@@ -163,7 +163,7 @@ namespace PiSubmarine::Drv8908
 
             std::array<uint8_t, 2> misoBytes{0};
 
-            if (!m_SpiDriver.WriteRead(mosiBytes.data(), misoBytes.data(), 2))
+            if (!m_SpiDriver.WriteRead(mosiBytes, misoBytes))
             {
                 return static_cast<IcStatus>(0);
             }
